@@ -20,7 +20,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="作者：HappyPlus\nEmail: 48100247@qq.com\n本程序免费"
+                android:text="作者：HappyPlus\nEmail: 48100247@qq.com\n本程序免费(默认开机自启)"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
