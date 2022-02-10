@@ -100,6 +100,13 @@
                     android:text="沉浸状态栏" />
 
                 <Button
+                    android:id="@+id/hide_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:text="沉浸虚拟按键" />
+
+                <Button
                     android:id="@+id/show_blue_bar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

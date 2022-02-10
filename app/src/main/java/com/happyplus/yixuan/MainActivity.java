@@ -177,6 +177,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 沉浸按钮
+        Button hideBtn = findViewById(R.id.hide_btn);
+        hideBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.e("HAPPYPLUS", "沉浸虚拟按钮");
+                ExecCommand("settings put global policy_control immersive.navigation=*");
+            }
+        });
+
         // 沉浸状态栏
         Button hideStatusBar = findViewById(R.id.hide_status_bar);
         hideStatusBar.setOnClickListener(new View.OnClickListener() {
