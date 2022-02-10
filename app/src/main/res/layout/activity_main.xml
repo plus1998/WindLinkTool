@@ -33,6 +33,33 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/adb_connect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="连接adb" />
+
+                <Button
+                    android:id="@+id/adb_disconnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:text="断开adb" />
+
+                <Button
+                    android:id="@+id/reboot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:text="重启车机" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
                     android:id="@+id/start_dudu"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

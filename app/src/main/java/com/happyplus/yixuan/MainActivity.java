@@ -8,10 +8,10 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,8 +22,7 @@ import com.tananaev.adblib.AdbStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-
-import javax.xml.bind.DatatypeConverter;
+import java.security.NoSuchAlgorithmException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private int port = 5578;
     private TextView text;
     private String res;
+    private AdbConnection connection;
+    private AdbCrypto crypto;
 
     private void ExecCommand(String command) {
         new Thread(new Runnable() {
@@ -44,19 +45,8 @@ public class MainActivity extends AppCompatActivity {
                             text.setText(command);
                         }
                     });
-                    socket = new Socket(host, port); // put phone IP address here
-                    Log.e("HAPPYPLUS", host + ":" + port);
-                    AdbCrypto crypto = AdbCrypto.generateAdbKeyPair(new AdbBase64() {
-                        @RequiresApi(api = Build.VERSION_CODES.O)
-                        @Override
-                        public String encodeToString(byte[] data) {
-                            return DatatypeConverter.printBase64Binary(data);
-                        }
-                    });
-                    AdbConnection connection = AdbConnection.create(socket, crypto);
-                    connection.connect();
-                    AdbStream stream = connection.open("shell:" + command);
                     res = command + " (结果以实际为准)";
+                    AdbStream stream = connection.open("shell:" + command);
                     while (!stream.isClosed())
                         try {
                             // Print each thing we read from the shell stream
@@ -72,10 +62,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                             return;
                         }
-                    connection.close();
                 } catch (Exception e) {
                     res = e.toString();
-                    if (res.contains("Connection failed")) res = host + ":" + port + "连接失败";
                     Log.e("HAPPYPULS", "SHELL FAILED: " + e.toString());
                 } finally {
                     runOnUiThread(new Runnable() {
@@ -98,6 +86,19 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         text = findViewById(R.id.result);
+
+        // adb加密
+        try {
+            crypto = AdbCrypto.generateAdbKeyPair(new AdbBase64() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public String encodeToString(byte[] data) {
+                    return Base64.encodeToString(data, 2);
+                }
+            });
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         // 打开嘟嘟
         Button startDudu = findViewById(R.id.start_dudu);
@@ -185,6 +186,36 @@ public class MainActivity extends AppCompatActivity {
                 ExecCommand("settings put global policy_control immersive.status=*");
             }
         });
+
+        // 连接adb
+        Button adbConnect = findViewById(R.id.adb_connect);
+        adbConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.e("HAPPYPLUS", "连接adb");
+                adbConnect();
+            }
+        });
+
+        // 断开adb
+        Button adbDisconnect = findViewById(R.id.adb_disconnect);
+        adbDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.e("HAPPYPLUS", "断开adb");
+                disconnectAdb();
+            }
+        });
+
+        // 重启
+        Button reboot = findViewById(R.id.reboot);
+        reboot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.e("HAPPYPLUS", "重启");
+                ExecCommand("reboot");
+            }
+        });
     }
 
     @Override
@@ -192,5 +223,43 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         //设置屏幕为横屏, 设置后会锁定方向
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+    }
+
+    private void adbConnect() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    socket = new Socket(host, port); // put phone IP address here
+                    connection = AdbConnection.create(socket, crypto);
+                    connection.connect();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "adb连接成功", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (IOException | InterruptedException e) {
+                    res = e.toString();
+                    if (res.contains("Connection failed")) res = host + ":" + port + "连接失败";
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, res, Toast.LENGTH_LONG).show();
+                            text.setText(res);
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void disconnectAdb() {
+        try {
+            connection.close();
+            Toast.makeText(MainActivity.this, "断开连接", Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
